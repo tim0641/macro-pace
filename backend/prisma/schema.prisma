@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile  Profile?
+  meals    Meal[]
+  workouts Workout[]
+
+  @@map("users")
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  weightKg  Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Food {
+  id          String   @id @default(uuid())
+  name        String
+  brand       String?
+  kcal100g    Float
+  protein100g Float
+  carbs100g   Float
+  fat100g     Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mealItems MealItem[]
+
+  @@index([name])
+  @@index([brand])
+  @@map("foods")
+}
+
+model Meal {
+  id        String   @id @default(uuid())
+  userId    String
+  eatenAt   DateTime
+  mealType  String // breakfast, lunch, dinner, snack
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items MealItem[]
+
+  @@index([userId, eatenAt])
+  @@map("meals")
+}
+
+model MealItem {
+  id        String   @id @default(uuid())
+  mealId    String
+  foodId    String
+  grams     Float
+  // Snapshot des macros calculés au moment de l'ajout
+  kcal      Float
+  protein   Float
+  carbs     Float
+  fat       Float
+  createdAt DateTime @default(now())
+
+  meal Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  food Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+
+  @@map("meal_items")
+}
+
+model Workout {
+  id          String   @id @default(uuid())
+  userId      String
+  startedAt   DateTime
+  type        String // run, strength
+  durationMin Int
+  rpe         Int? // Rate of Perceived Exertion 1-10
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  runDetails RunDetails?
+
+  @@index([userId, startedAt])
+  @@map("workouts")
+}
+
+model RunDetails {
+  id           String   @id @default(uuid())
+  workoutId    String   @unique
+  distanceKm   Float
+  avgPaceSecKm Float
+  createdAt    DateTime @default(now())
+
+  workout Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+
+  @@map("run_details")
+}
