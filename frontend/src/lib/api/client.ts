@@ -1,4 +1,4 @@
-import { AuthResponse, User, FoodSearchResult, Meal, Workout, DayStats } from './types';
+import { AuthResponse, User, FoodSearchResult, Meal, Workout, DayStats, Targets, WeekStats } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -121,6 +121,25 @@ class ApiClient {
     return this.request<User>('/me');
   }
 
+  async updateProfile(profile: {
+    sex?: 'male' | 'female';
+    birthdate?: string;
+    heightCm?: number;
+    weightKg?: number;
+    activityLevel?: 'sedentary' | 'light' | 'moderate' | 'very' | 'athlete';
+    goal?: 'maintain' | 'lose' | 'gain';
+    goalRate?: 'slow' | 'medium' | 'fast';
+  }): Promise<any> {
+    return this.request<any>('/me/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profile),
+    });
+  }
+
+  async getTargets(): Promise<Targets | null> {
+    return this.request<Targets | null>('/me/targets');
+  }
+
   // Foods
   async searchFoods(query?: string, limit = 20): Promise<FoodSearchResult[]> {
     const params = new URLSearchParams();
@@ -217,6 +236,11 @@ class ApiClient {
   async getDayStats(date?: string): Promise<DayStats> {
     const params = date ? `?date=${date}` : '';
     return this.request<DayStats>(`/stats/day${params}`);
+  }
+
+  async getWeekStats(date?: string): Promise<WeekStats> {
+    const params = date ? `?date=${date}` : '';
+    return this.request<WeekStats>(`/stats/week${params}`);
   }
 }
 

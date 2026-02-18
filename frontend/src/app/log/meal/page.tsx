@@ -72,6 +72,7 @@ export default function LogMealPage() {
       // Recharger les repas et les stats journalières (totaux kcal/macros)
       queryClient.invalidateQueries({ queryKey: ['meals'] });
       queryClient.invalidateQueries({ queryKey: ['dayStats'] });
+      queryClient.invalidateQueries({ queryKey: ['weekStats'] });
       setSelectedExternalFoodId('');
       setGrams('');
     },

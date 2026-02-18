@@ -59,7 +59,16 @@ function loadCiqualFromCsv(filePath: string): CiqualFood[] {
     const header = lines[0].split(';').map((h) => h.trim().toLowerCase());
     const codeIdx = header.findIndex((h) => h.includes('code') || h.includes('alim_code'));
     const nameIdx = header.findIndex((h) => h.includes('nom') || h.includes('libelle') || h.includes('name'));
-    const kcalIdx = header.findIndex((h) => h.includes('energie') || h.includes('kcal'));
+    
+    // Recherche de la colonne kcal en excluant explicitement kJ
+    const kcalIdx = header.findIndex((h) => {
+      const hasKcal = h.includes('kcal') || h.includes('kcal/100g');
+      const hasEnergie = h.includes('energie');
+      const isNotKj = !h.includes('kj') && !h.includes('kj/100g');
+      // Priorité aux colonnes avec "kcal", sinon "energie" si pas kJ
+      return (hasKcal || (hasEnergie && isNotKj));
+    });
+    
     const proteinIdx = header.findIndex((h) => h.includes('proteine') || h.includes('protein'));
     const carbsIdx = header.findIndex((h) => h.includes('glucide') || h.includes('carb'));
     const fatIdx = header.findIndex((h) => h.includes('lipide') || h.includes('fat'));
@@ -114,6 +123,15 @@ function loadCiqualFromExcel(filePath: string): CiqualFood[] {
     const keys = Object.keys(firstRow);
     console.log(`[Ciqual] Nombre de lignes: ${data.length}, colonnes détectées (5 premières): ${keys.slice(0, 5).join(', ')}`);
     
+    // Log toutes les colonnes contenant "energie" ou "kcal" pour debug
+    const energieCols = keys.filter((k) => {
+      const kNorm = String(k).trim().toLowerCase();
+      return kNorm.includes('energie') || kNorm.includes('kcal') || kNorm.includes('kj');
+    });
+    if (energieCols.length > 0) {
+      console.log(`[Ciqual] Colonnes énergie trouvées: ${energieCols.join(', ')}`);
+    }
+    
     const findKey = (patterns: string[]): string | null => {
       for (const pattern of patterns) {
         const found = keys.find((k) => {
@@ -126,10 +144,44 @@ function loadCiqualFromExcel(filePath: string): CiqualFood[] {
       return null;
     };
     
+    // Fonction spéciale pour trouver la colonne kcal en excluant explicitement kJ
+    const findKcalKey = (): string | null => {
+      // Priorité 1: colonnes contenant explicitement "kcal" ou "kcal/100g"
+      const kcalPatterns = [
+        'kcal/100g',
+        'kcal',
+        'energie (kcal/100g)',
+        'energie, règlement ue n° 1169/2011 (kcal/100g)',
+        'règlement ue',
+        '1169/2011',
+      ];
+      
+      for (const pattern of kcalPatterns) {
+        const found = keys.find((k) => {
+          const kNorm = String(k).trim().toLowerCase();
+          const pNorm = pattern.toLowerCase();
+          // Doit contenir le pattern ET ne pas contenir "kj" ou "kj/100g"
+          const matches = kNorm.includes(pNorm) || kNorm.replace(/\s/g, '').includes(pNorm.replace(/\s/g, ''));
+          const isNotKj = !kNorm.includes('kj') && !kNorm.includes('kj/100g');
+          return matches && isNotKj;
+        });
+        if (found) return found;
+      }
+      
+      // Priorité 2: colonnes "energie" mais seulement si elles ne contiennent pas "kj"
+      const energieFound = keys.find((k) => {
+        const kNorm = String(k).trim().toLowerCase();
+        return kNorm.includes('energie') && !kNorm.includes('kj') && !kNorm.includes('kj/100g');
+      });
+      if (energieFound) return energieFound;
+      
+      return null;
+    };
+    
     // Noms de colonnes Ciqual (ANES) possibles
     const codeKey = findKey(['alim_code', 'code', 'id']) || keys[0];
     const nameKey = findKey(['alim_nom_fr', 'nom', 'libelle', 'name', 'aliment']) || keys[1];
-    const kcalKey = findKey(['energie', 'kcal', 'energie (kcal/100g)', 'règlement ue', '1169/2011']);
+    const kcalKey = findKcalKey();
     const proteinKey = findKey(['protéines', 'proteines', 'protein', 'protéines (g/100g)']);
     const carbsKey = findKey(['glucides', 'glucide', 'carb', 'glucides (g/100g)']);
     const fatKey = findKey(['lipides', 'lipide', 'fat', 'lipides (g/100g)']);
@@ -156,6 +208,17 @@ function loadCiqualFromExcel(filePath: string): CiqualFood[] {
         carbs100g: parseCiqualValue(carbsKey ? row[carbsKey] : 0),
         fat100g: parseCiqualValue(fatKey ? row[fatKey] : 0),
       });
+    }
+    
+    if (kcalKey) {
+      const kcalKeyNorm = String(kcalKey).toLowerCase();
+      if (kcalKeyNorm.includes('kj')) {
+        console.warn(`[Ciqual] ⚠️ ATTENTION: La colonne détectée "${kcalKey}" contient "kJ" au lieu de "kcal" !`);
+      } else {
+        console.log(`[Ciqual] ✅ Colonne kcal détectée: "${kcalKey}"`);
+      }
+    } else {
+      console.warn(`[Ciqual] ⚠️ Aucune colonne kcal trouvée. Colonnes disponibles: ${keys.join(', ')}`);
     }
     
     console.log(`[Ciqual] ${foods.length} aliments parsés depuis Excel (code: ${codeKey}, nom: ${nameKey}, kcal: ${kcalKey || 'n/a'})`);

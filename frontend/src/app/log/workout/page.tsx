@@ -45,6 +45,7 @@ export default function LogWorkoutPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workouts'] });
       queryClient.invalidateQueries({ queryKey: ['dayStats'] });
+      queryClient.invalidateQueries({ queryKey: ['weekStats'] });
       router.push('/dashboard');
     },
   });

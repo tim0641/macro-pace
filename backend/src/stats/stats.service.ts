@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class StatsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private usersService: UsersService,
+  ) {}
 
   async getDayStats(userId: string, date: string) {
     const startOfDay = new Date(date);
@@ -75,6 +79,8 @@ export class StatsService {
       }
     }
 
+    const targets = await this.usersService.getTargets(userId);
+
     return {
       date,
       nutrition: nutritionTotals,
@@ -83,6 +89,45 @@ export class StatsService {
         totalDurationMin,
         totalBurnKcal: Math.round(totalBurnKcal),
       },
+      targets: targets
+        ? {
+            tdee: targets.tdee,
+            targetCalories: targets.targetCalories,
+            proteinG: targets.proteinG,
+            carbsG: targets.carbsG,
+            fatG: targets.fatG,
+          }
+        : null,
     };
+  }
+
+  /** Statistiques sur les 7 derniers jours (pour graphiques). */
+  async getWeekStats(userId: string, endDateStr?: string) {
+    const endDate = endDateStr ? new Date(endDateStr) : new Date();
+    const days: Array<{
+      date: string;
+      nutrition: { kcal: number };
+      totalBurnKcal: number;
+      totalDurationMin: number;
+      targetCalories: number | null;
+    }> = [];
+    const targets = await this.usersService.getTargets(userId);
+    const targetCal = targets?.targetCalories ?? null;
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(endDate);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayStats = await this.getDayStats(userId, dateStr);
+      days.push({
+        date: dateStr,
+        nutrition: dayStats.nutrition,
+        totalBurnKcal: dayStats.workouts.totalBurnKcal,
+        totalDurationMin: dayStats.workouts.totalDurationMin,
+        targetCalories: dayStats.targets?.targetCalories ?? targetCal,
+      });
+    }
+
+    return { days, targets: targets ? { targetCalories: targets.targetCalories } : null };
   }
 }

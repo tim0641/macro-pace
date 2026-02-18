@@ -45,6 +45,7 @@ export default function FoodsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meals'] });
       queryClient.invalidateQueries({ queryKey: ['dayStats'] });
+      queryClient.invalidateQueries({ queryKey: ['weekStats'] });
       setQuickAddError(null);
     },
     onError: (err: Error) => {

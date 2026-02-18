@@ -1,12 +1,38 @@
 // Types pour l'API
 
+export type Sex = 'male' | 'female';
+export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'very' | 'athlete';
+export type Goal = 'maintain' | 'lose' | 'gain';
+export type GoalRate = 'slow' | 'medium' | 'fast';
+
+export interface Profile {
+  id: string;
+  userId: string;
+  sex: Sex | null;
+  birthdate: string | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  activityLevel: ActivityLevel | null;
+  goal: Goal | null;
+  goalRate: GoalRate | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   email: string;
   createdAt: string;
-  profile?: {
-    weightKg: number | null;
-  };
+  profile?: Profile | null;
+}
+
+export interface Targets {
+  bmr: number;
+  tdee: number;
+  targetCalories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
 }
 
 export interface AuthResponse {
@@ -83,4 +109,24 @@ export interface DayStats {
     totalDurationMin: number;
     totalBurnKcal: number;
   };
+  targets: {
+    tdee: number;
+    targetCalories: number;
+    proteinG: number;
+    carbsG: number;
+    fatG: number;
+  } | null;
+}
+
+export interface WeekStatsDay {
+  date: string;
+  nutrition: { kcal: number };
+  totalBurnKcal: number;
+  totalDurationMin: number;
+  targetCalories: number | null;
+}
+
+export interface WeekStats {
+  days: WeekStatsDay[];
+  targets: { targetCalories: number } | null;
 }
