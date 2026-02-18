@@ -14,8 +14,9 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
-export interface Food {
-  id: string;
+export interface FoodSearchResult {
+  source: 'ciqual';
+  externalId: string;
   name: string;
   brand: string | null;
   kcal100g: number;
@@ -27,13 +28,19 @@ export interface Food {
 export interface MealItem {
   id: string;
   mealId: string;
-  foodId: string;
+  foodSource: 'ciqual' | 'custom';
+  externalFoodId: string | null;
+  foodName: string;
+  foodBrand: string | null;
+  kcal100g: number;
+  protein100g: number;
+  carbs100g: number;
+  fat100g: number;
   grams: number;
   kcal: number;
   protein: number;
   carbs: number;
   fat: number;
-  food: Food;
 }
 
 export interface Meal {

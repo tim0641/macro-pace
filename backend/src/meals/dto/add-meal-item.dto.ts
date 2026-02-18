@@ -2,12 +2,12 @@ import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum FoodSourceDto {
-  usda = 'usda',
+  ciqual = 'ciqual',
   custom = 'custom',
 }
 
 export class AddMealItemDto {
-  @ApiProperty({ example: 'usda', enum: FoodSourceDto })
+  @ApiProperty({ example: 'ciqual', enum: FoodSourceDto })
   @IsEnum(FoodSourceDto)
   foodSource: FoodSourceDto;
 

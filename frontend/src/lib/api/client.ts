@@ -1,4 +1,4 @@
-import { AuthResponse, User, Food, Meal, Workout, DayStats } from './types';
+import { AuthResponse, User, FoodSearchResult, Meal, Workout, DayStats } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -122,25 +122,11 @@ class ApiClient {
   }
 
   // Foods
-  async searchFoods(query?: string, limit = 20): Promise<Food[]> {
+  async searchFoods(query?: string, limit = 20): Promise<FoodSearchResult[]> {
     const params = new URLSearchParams();
     if (query) params.append('query', query);
     params.append('limit', limit.toString());
-    return this.request<Food[]>(`/foods?${params}`);
-  }
-
-  async createFood(food: {
-    name: string;
-    brand?: string;
-    kcal100g: number;
-    protein100g: number;
-    carbs100g: number;
-    fat100g: number;
-  }): Promise<Food> {
-    return this.request<Food>('/foods', {
-      method: 'POST',
-      body: JSON.stringify(food),
-    });
+    return this.request<FoodSearchResult[]>(`/foods?${params}`);
   }
 
   // Meals
@@ -155,7 +141,20 @@ class ApiClient {
     });
   }
 
-  async addMealItem(mealId: string, item: { foodId: string; grams: number }): Promise<any> {
+  async addMealItem(
+    mealId: string,
+    item: {
+      foodSource: 'ciqual' | 'custom';
+      externalFoodId?: string;
+      foodName: string;
+      foodBrand?: string;
+      kcal100g: number;
+      protein100g: number;
+      carbs100g: number;
+      fat100g: number;
+      grams: number;
+    }
+  ): Promise<any> {
     return this.request(`/meals/${mealId}/items`, {
       method: 'POST',
       body: JSON.stringify(item),
@@ -165,6 +164,29 @@ class ApiClient {
   async getMeals(date?: string): Promise<{ meals: Meal[]; totals: any }> {
     const params = date ? `?date=${date}` : '';
     return this.request<{ meals: Meal[]; totals: any }>(`/meals${params}`);
+  }
+
+  async deleteMeal(mealId: string): Promise<{ success: boolean; id: string }> {
+    return this.request(`/meals/${mealId}`, { method: 'DELETE' });
+  }
+
+  async quickAddMealItem(item: {
+    foodSource: 'ciqual' | 'custom';
+    externalFoodId?: string;
+    foodName: string;
+    foodBrand?: string;
+    kcal100g: number;
+    protein100g: number;
+    carbs100g: number;
+    fat100g: number;
+    grams: number;
+    mealType?: string;
+    eatenAt?: string;
+  }): Promise<Meal> {
+    return this.request<Meal>('/meals/quick-add', {
+      method: 'POST',
+      body: JSON.stringify(item),
+    });
   }
 
   // Workouts

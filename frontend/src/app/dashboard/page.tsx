@@ -1,6 +1,7 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,11 +9,14 @@ import { useAuth } from '@/hooks/use-auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Trash2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { logout } = useAuth();
   const today = new Date().toISOString().split('T')[0];
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dayStats', today],
@@ -29,8 +33,24 @@ export default function DashboardPage() {
     queryFn: () => apiClient.getWorkouts(today, today),
   });
 
+  const deleteMealMutation = useMutation({
+    mutationFn: (mealId: string) => apiClient.deleteMeal(mealId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meals'] });
+      queryClient.invalidateQueries({ queryKey: ['dayStats'] });
+      setDeleteError(null);
+    },
+    onError: (err: Error) => {
+      setDeleteError(err.message);
+    },
+  });
+
+  const handleDeleteMeal = (mealId: string) => {
+    if (typeof window !== 'undefined' && !window.confirm('Supprimer ce repas ?')) return;
+    deleteMealMutation.mutate(mealId);
+  };
+
   useEffect(() => {
-    // Vérifier si l'utilisateur est connecté
     if (typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
       router.push('/login');
     }
@@ -107,30 +127,47 @@ export default function DashboardPage() {
             <CardDescription>{mealsData?.meals.length || 0} repas</CardDescription>
           </CardHeader>
           <CardContent>
+            {deleteError && (
+              <div className="mb-4 p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+                {deleteError}
+              </div>
+            )}
             {mealsData?.meals.length === 0 ? (
               <p className="text-muted-foreground">Aucun repas enregistré aujourd'hui</p>
             ) : (
               <div className="space-y-4">
                 {mealsData?.meals.map((meal) => (
-                  <div key={meal.id} className="border-b pb-2">
-                    <div className="flex justify-between">
-                      <span className="font-medium capitalize">{meal.mealType}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(meal.eatenAt).toLocaleTimeString('fr-FR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </span>
-                    </div>
-                    {meal.items.length > 0 && (
-                      <div className="mt-1 text-sm text-muted-foreground">
-                        {meal.items.length} aliment(s) •{' '}
-                        {Math.round(
-                          meal.items.reduce((sum, item) => sum + Number(item.kcal), 0)
-                        )}{' '}
-                        kcal
+                  <div key={meal.id} className="border-b pb-2 flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex justify-between">
+                        <span className="font-medium capitalize">{meal.mealType}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(meal.eatenAt).toLocaleTimeString('fr-FR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
                       </div>
-                    )}
+                      {meal.items.length > 0 && (
+                        <div className="mt-1 text-sm text-muted-foreground">
+                          {meal.items.length} aliment(s) •{' '}
+                          {Math.round(
+                            meal.items.reduce((sum, item) => sum + Number(item.kcal), 0)
+                          )}{' '}
+                          kcal
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDeleteMeal(meal.id)}
+                      disabled={deleteMealMutation.isPending}
+                      aria-label="Supprimer le repas"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ))}
               </div>

@@ -105,4 +105,70 @@ export class MealsService {
       totals,
     };
   }
+
+  async delete(userId: string, mealId: string) {
+    const meal = await this.prisma.meal.findUnique({
+      where: { id: mealId },
+    });
+
+    if (!meal) {
+      throw new NotFoundException('Repas non trouvé');
+    }
+
+    if (meal.userId !== userId) {
+      throw new ForbiddenException('Vous n\'avez pas accès à ce repas');
+    }
+
+    await this.prisma.meal.delete({
+      where: { id: mealId },
+    });
+
+    return { success: true, id: mealId };
+  }
+
+  async quickAdd(
+    userId: string,
+    dto: AddMealItemDto & { mealType?: string; eatenAt?: string },
+  ) {
+    const eatenAt = dto.eatenAt ? new Date(dto.eatenAt) : new Date();
+    const mealType = dto.mealType || 'snack';
+
+    const meal = await this.prisma.meal.create({
+      data: {
+        userId,
+        eatenAt,
+        mealType,
+      },
+    });
+
+    const ratio = dto.grams / 100;
+    const kcal = Number(dto.kcal100g) * ratio;
+    const protein = Number(dto.protein100g) * ratio;
+    const carbs = Number(dto.carbs100g) * ratio;
+    const fat = Number(dto.fat100g) * ratio;
+
+    await this.prisma.mealItem.create({
+      data: {
+        mealId: meal.id,
+        foodSource: dto.foodSource,
+        externalFoodId: dto.externalFoodId,
+        foodName: dto.foodName,
+        foodBrand: dto.foodBrand,
+        kcal100g: dto.kcal100g,
+        protein100g: dto.protein100g,
+        carbs100g: dto.carbs100g,
+        fat100g: dto.fat100g,
+        grams: dto.grams,
+        kcal,
+        protein,
+        carbs,
+        fat,
+      },
+    });
+
+    return this.prisma.meal.findUnique({
+      where: { id: meal.id },
+      include: { items: true },
+    });
+  }
 }

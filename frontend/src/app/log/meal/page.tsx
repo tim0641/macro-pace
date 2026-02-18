@@ -20,7 +20,8 @@ export default function LogMealPage() {
     new Date().toISOString().slice(0, 16)
   );
   const [note, setNote] = useState('');
-  const [selectedFoodId, setSelectedFoodId] = useState('');
+  const [foodQuery, setFoodQuery] = useState('');
+  const [selectedExternalFoodId, setSelectedExternalFoodId] = useState('');
   const [grams, setGrams] = useState('');
   const [currentMealId, setCurrentMealId] = useState<string | null>(null);
 
@@ -30,9 +31,9 @@ export default function LogMealPage() {
     }
   }, [router]);
 
-  const { data: foods } = useQuery({
-    queryKey: ['foods'],
-    queryFn: () => apiClient.searchFoods('', 100),
+  const { data: foods, isFetching: isFetchingFoods } = useQuery({
+    queryKey: ['foods', foodQuery],
+    queryFn: () => apiClient.searchFoods(foodQuery, 30),
   });
 
   const createMealMutation = useMutation({
@@ -50,13 +51,28 @@ export default function LogMealPage() {
 
   const addItemMutation = useMutation({
     mutationFn: () =>
-      apiClient.addMealItem(currentMealId!, {
-        foodId: selectedFoodId,
-        grams: parseFloat(grams),
-      }),
+      apiClient.addMealItem(currentMealId!, (() => {
+        const selected = foods?.find((f) => f.externalId === selectedExternalFoodId);
+        if (!selected) {
+          throw new Error('Veuillez sélectionner un aliment');
+        }
+        return {
+          foodSource: 'ciqual' as const,
+          externalFoodId: selected.externalId,
+          foodName: selected.name,
+          foodBrand: selected.brand ?? undefined,
+          kcal100g: selected.kcal100g,
+          protein100g: selected.protein100g,
+          carbs100g: selected.carbs100g,
+          fat100g: selected.fat100g,
+          grams: parseFloat(grams),
+        };
+      })()),
     onSuccess: () => {
+      // Recharger les repas et les stats journalières (totaux kcal/macros)
       queryClient.invalidateQueries({ queryKey: ['meals'] });
-      setSelectedFoodId('');
+      queryClient.invalidateQueries({ queryKey: ['dayStats'] });
+      setSelectedExternalFoodId('');
       setGrams('');
     },
   });
@@ -120,21 +136,30 @@ export default function LogMealPage() {
               <h3 className="font-semibold">Ajouter des aliments</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
+                  <Label>Recherche</Label>
+                  <Input
+                    value={foodQuery}
+                    onChange={(e) => setFoodQuery(e.target.value)}
+                    placeholder="Ex: chicken, banana..."
+                  />
+                </div>
+                <div className="space-y-2" />
+                <div className="space-y-2 col-span-2">
                   <Label>Aliment</Label>
-                  <Select value={selectedFoodId} onValueChange={setSelectedFoodId}>
+                  <Select value={selectedExternalFoodId} onValueChange={setSelectedExternalFoodId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un aliment" />
+                      <SelectValue placeholder={isFetchingFoods ? 'Recherche...' : 'Sélectionner un aliment'} />
                     </SelectTrigger>
                     <SelectContent>
                       {foods?.map((food) => (
-                        <SelectItem key={food.id} value={food.id}>
+                        <SelectItem key={food.externalId} value={food.externalId}>
                           {food.name} {food.brand && `(${food.brand})`}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 col-span-2">
                   <Label>Quantité (g)</Label>
                   <Input
                     type="number"
@@ -147,7 +172,7 @@ export default function LogMealPage() {
               </div>
               <Button
                 onClick={() => addItemMutation.mutate()}
-                disabled={!selectedFoodId || !grams || addItemMutation.isPending}
+                disabled={!selectedExternalFoodId || !grams || addItemMutation.isPending}
               >
                 {addItemMutation.isPending ? 'Ajout...' : 'Ajouter'}
               </Button>

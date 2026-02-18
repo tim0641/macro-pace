@@ -5,25 +5,18 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Plus } from 'lucide-react';
+import type { FoodSearchResult } from '@/lib/api/types';
 
 export default function FoodsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newFood, setNewFood] = useState({
-    name: '',
-    brand: '',
-    kcal100g: '',
-    protein100g: '',
-    carbs100g: '',
-    fat100g: '',
-  });
+  const [quickAddError, setQuickAddError] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !localStorage.getItem('accessToken')) {
@@ -36,38 +29,46 @@ export default function FoodsPage() {
     queryFn: () => apiClient.searchFoods(searchQuery),
   });
 
-  const createMutation = useMutation({
-    mutationFn: () =>
-      apiClient.createFood({
-        name: newFood.name,
-        brand: newFood.brand || undefined,
-        kcal100g: parseFloat(newFood.kcal100g),
-        protein100g: parseFloat(newFood.protein100g),
-        carbs100g: parseFloat(newFood.carbs100g),
-        fat100g: parseFloat(newFood.fat100g),
+  const quickAddMutation = useMutation({
+    mutationFn: (payload: { food: FoodSearchResult; grams: number }) =>
+      apiClient.quickAddMealItem({
+        foodSource: 'ciqual',
+        externalFoodId: payload.food.externalId,
+        foodName: payload.food.name,
+        foodBrand: payload.food.brand ?? undefined,
+        kcal100g: payload.food.kcal100g,
+        protein100g: payload.food.protein100g,
+        carbs100g: payload.food.carbs100g,
+        fat100g: payload.food.fat100g,
+        grams: payload.grams,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['foods'] });
-      setShowCreateForm(false);
-      setNewFood({
-        name: '',
-        brand: '',
-        kcal100g: '',
-        protein100g: '',
-        carbs100g: '',
-        fat100g: '',
-      });
+      queryClient.invalidateQueries({ queryKey: ['meals'] });
+      queryClient.invalidateQueries({ queryKey: ['dayStats'] });
+      setQuickAddError(null);
+    },
+    onError: (err: Error) => {
+      setQuickAddError(err.message);
     },
   });
+
+  const handleQuickAdd = (food: FoodSearchResult) => {
+    if (typeof window === 'undefined') return;
+    const raw = window.prompt(`Quantité en grammes pour "${food.name}" ?`, '100');
+    if (raw === null) return;
+    const grams = parseFloat(raw.replace(',', '.'));
+    if (isNaN(grams) || grams <= 0) {
+      setQuickAddError('Quantité invalide');
+      return;
+    }
+    quickAddMutation.mutate({ food, grams });
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Aliments</h1>
         <div className="space-x-2">
-          <Button onClick={() => setShowCreateForm(!showCreateForm)}>
-            {showCreateForm ? 'Annuler' : 'Créer un aliment'}
-          </Button>
           <Link href="/dashboard">
             <Button variant="outline">Retour</Button>
           </Link>
@@ -80,99 +81,35 @@ export default function FoodsPage() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        <p className="text-sm text-muted-foreground">
+          Résultats fournis à la demande via une API externe (ex: USDA FoodData Central).
+        </p>
       </div>
 
-      {showCreateForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Créer un aliment</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                createMutation.mutate();
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Nom</Label>
-                  <Input
-                    value={newFood.name}
-                    onChange={(e) => setNewFood({ ...newFood, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Marque (optionnel)</Label>
-                  <Input
-                    value={newFood.brand}
-                    onChange={(e) => setNewFood({ ...newFood, brand: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Kcal/100g</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={newFood.kcal100g}
-                    onChange={(e) => setNewFood({ ...newFood, kcal100g: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Protéines/100g (g)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={newFood.protein100g}
-                    onChange={(e) => setNewFood({ ...newFood, protein100g: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Glucides/100g (g)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={newFood.carbs100g}
-                    onChange={(e) => setNewFood({ ...newFood, carbs100g: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Lipides/100g (g)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={newFood.fat100g}
-                    onChange={(e) => setNewFood({ ...newFood, fat100g: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              {createMutation.isError && (
-                <p className="text-sm text-destructive">
-                  {(createMutation.error as Error).message}
-                </p>
-              )}
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Création...' : 'Créer'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+      {quickAddError && (
+        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+          {quickAddError}
+        </div>
       )}
-
       {isLoading ? (
         <p>Chargement...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {foods?.map((food) => (
-            <Card key={food.id}>
+            <Card key={food.externalId} className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-primary"
+                onClick={() => handleQuickAdd(food)}
+                disabled={quickAddMutation.isPending}
+                aria-label="Ajouter rapidement"
+                title="Ajouter au journal (repas snack du jour)"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
               <CardHeader>
-                <CardTitle className="text-lg">{food.name}</CardTitle>
+                <CardTitle className="text-lg pr-10">{food.name}</CardTitle>
                 {food.brand && (
                   <CardDescription>{food.brand}</CardDescription>
                 )}

@@ -1,0 +1,25 @@
+# Placez ici votre fichier Ciqual
+# 
+# Option 1: Fichier Excel (ciqual.xls ou ciqual.xlsx) ⭐ RECOMMANDÉ
+# Format: Fichier Excel téléchargé depuis https://ciqual.anses.fr/
+# Le système détecte automatiquement les colonnes dans la première feuille.
+#
+# Option 2: Fichier JSON (ciqual.json)
+# Format attendu: tableau d'objets avec les champs:
+# - code (ou alim_code, id)
+# - name (ou alim_nom_fr, libelle)
+# - kcal100g (ou "Energie, Règlement UE N° 1169/2011 (kcal/100g)", energie_kcal_100g)
+# - protein100g (ou "Protéines (g/100g)", proteines_100g)
+# - carbs100g (ou "Glucides (g/100g)", glucides_100g)
+# - fat100g (ou "Lipides (g/100g)", lipides_100g)
+#
+# Option 2: Fichier CSV (ciqual.csv)
+# Format attendu: CSV avec séparateur ";" et colonnes contenant:
+# - code/alim_code
+# - nom/libelle/name
+# - energie/kcal
+# - proteine/protein
+# - glucide/carb
+# - lipide/fat
+#
+# Téléchargement: https://ciqual.anses.fr/

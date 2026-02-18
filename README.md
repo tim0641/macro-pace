@@ -144,28 +144,11 @@ curl http://localhost:3001/me \
 ### Aliments
 
 #### GET /foods
-Rechercher des aliments
+Rechercher des aliments (à la demande via API externe, ex: USDA FoodData Central)
 
 ```bash
 curl "http://localhost:3001/foods?query=poulet&limit=20" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
-
-#### POST /foods
-Créer un aliment personnalisé
-
-```bash
-curl -X POST http://localhost:3001/foods \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Poulet grillé",
-    "brand": "Marque X",
-    "kcal100g": 165,
-    "protein100g": 31,
-    "carbs100g": 0,
-    "fat100g": 3.6
-  }'
 ```
 
 ### Repas
@@ -192,7 +175,14 @@ curl -X POST http://localhost:3001/meals/MEAL_ID/items \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "foodId": "FOOD_ID",
+    "foodSource": "usda",
+    "externalFoodId": "2345678",
+    "foodName": "CHICKEN, BROILERS OR FRYERS, BREAST, MEAT ONLY, COOKED, ROASTED",
+    "foodBrand": null,
+    "kcal100g": 165,
+    "protein100g": 31,
+    "carbs100g": 0,
+    "fat100g": 3.6,
     "grams": 150
   }'
 ```
@@ -216,13 +206,19 @@ Réponse :
       "items": [
         {
           "id": "...",
-          "foodId": "...",
+          "foodSource": "usda",
+          "externalFoodId": "2345678",
+          "foodName": "CHICKEN, ...",
+          "foodBrand": null,
+          "kcal100g": 165,
+          "protein100g": 31,
+          "carbs100g": 0,
+          "fat100g": 3.6,
           "grams": 150,
           "kcal": 247.5,
           "protein": 46.5,
           "carbs": 0,
-          "fat": 5.4,
-          "food": { ... }
+          "fat": 5.4
         }
       ]
     }
