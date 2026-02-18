@@ -94,15 +94,26 @@ export default function ProfilePage() {
   });
 
   return (
-    <div className="container mx-auto p-6 max-w-2xl space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Mon profil</h1>
-        <Link href="/dashboard">
-          <Button variant="outline">Retour</Button>
-        </Link>
-      </div>
+    <div className="min-h-screen">
+      <header className="nav-bar sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <h1 className="text-xl font-semibold tracking-tight">Macro Pace</h1>
+          <nav className="flex items-center gap-2">
+            <Link href="/dashboard"><Button variant="ghost" size="sm">Tableau de bord</Button></Link>
+            <Link href="/profile"><Button variant="outline" size="sm" className="border-primary/50 bg-primary/5">Profil</Button></Link>
+            <Link href="/foods"><Button variant="outline" size="sm">Aliments</Button></Link>
+            <Link href="/log/meal"><Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">+ Repas</Button></Link>
+            <Link href="/log/workout"><Button variant="outline" size="sm">+ Entraînement</Button></Link>
+          </nav>
+        </div>
+      </header>
+      <main className="container mx-auto px-4 py-6 max-w-2xl space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Mon profil</h2>
+          <p className="text-sm text-muted-foreground">Cibles caloriques et macros</p>
+        </div>
 
-      <Card>
+      <Card className="card-elevated border-border/80">
         <CardHeader>
           <CardTitle>Informations</CardTitle>
           <CardDescription>
@@ -208,6 +219,7 @@ export default function ProfilePage() {
           <Button
             onClick={() => updateMutation.mutate()}
             disabled={updateMutation.isPending}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             {updateMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}
           </Button>
@@ -220,7 +232,7 @@ export default function ProfilePage() {
       </Card>
 
       {targets && (
-        <Card>
+        <Card className="card-elevated border-border/80">
           <CardHeader>
             <CardTitle>Cibles calculées</CardTitle>
             <CardDescription>
@@ -253,6 +265,7 @@ export default function ProfilePage() {
           pour afficher vos cibles.
         </p>
       )}
+      </main>
     </div>
   );
 }

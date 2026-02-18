@@ -79,37 +79,52 @@ export default function DashboardPage() {
   }, [router]);
 
   if (isLoading) {
-    return <div className="container mx-auto p-6">Chargement...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Chargement...</div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Tableau de bord</h1>
-        <div className="space-x-2">
-          <Link href="/profile">
-            <Button variant="outline">Mon profil</Button>
-          </Link>
-          <Link href="/foods">
-            <Button variant="outline">Aliments</Button>
-          </Link>
-          <Link href="/log/meal">
-            <Button variant="outline">Ajouter un repas</Button>
-          </Link>
-          <Link href="/log/workout">
-            <Button variant="outline">Ajouter un entraînement</Button>
-          </Link>
-          <Button variant="outline" onClick={logout}>
-            Déconnexion
-          </Button>
+    <div className="min-h-screen">
+      <header className="nav-bar sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Macro Pace</h1>
+          <nav className="flex flex-wrap items-center gap-2">
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm" className="font-medium">Tableau de bord</Button>
+            </Link>
+            <Link href="/profile">
+              <Button variant="outline" size="sm" className="border-border/80">Profil</Button>
+            </Link>
+            <Link href="/foods">
+              <Button variant="outline" size="sm" className="border-border/80">Aliments</Button>
+            </Link>
+            <Link href="/log/meal">
+              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">+ Repas</Button>
+            </Link>
+            <Link href="/log/workout">
+              <Button variant="outline" size="sm" className="border-border/80">+ Entraînement</Button>
+            </Link>
+            <Button variant="ghost" size="sm" onClick={logout} className="text-muted-foreground hover:text-foreground">
+              Déconnexion
+            </Button>
+          </nav>
         </div>
-      </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-6 space-y-8">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-1">Tableau de bord</h2>
+          <p className="text-sm text-muted-foreground">Vue d&apos;ensemble du jour</p>
+        </div>
 
       {stats && (
         <>
           {/* KPI cards */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <Card>
+            <Card className="card-elevated border-border/80">
               <CardHeader className="pb-1">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Consommées
@@ -120,7 +135,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-muted-foreground">kcal aujourd&apos;hui</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="card-elevated border-border/80">
               <CardHeader className="pb-1">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Brûlées
@@ -131,7 +146,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-muted-foreground">kcal (entraînements)</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="card-elevated border-border/80">
               <CardHeader className="pb-1">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Net
@@ -144,7 +159,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-muted-foreground">consommées − brûlées</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="card-elevated border-border/80">
               <CardHeader className="pb-1">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Cible
@@ -157,7 +172,7 @@ export default function DashboardPage() {
                 <p className="text-xs text-muted-foreground">kcal objectif</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="card-elevated border-border/80">
               <CardHeader className="pb-1">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Écart
@@ -192,7 +207,7 @@ export default function DashboardPage() {
 
           {/* Macros du jour (camembert en kcal) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+            <Card className="card-elevated border-border/80">
               <CardHeader>
                 <CardTitle>Macros du jour</CardTitle>
                 <CardDescription>Répartition en calories (prot×4, gluc×4, lip×9)</CardDescription>
@@ -237,7 +252,7 @@ export default function DashboardPage() {
             </Card>
 
             {/* Graphiques 7 jours */}
-            <Card>
+            <Card className="card-elevated border-border/80">
               <CardHeader>
                 <CardTitle>Calories sur 7 jours</CardTitle>
                 <CardDescription>Consommées vs cible journalière</CardDescription>
@@ -291,7 +306,7 @@ export default function DashboardPage() {
 
           {/* Bar chart: calories brûlées + durée par jour */}
           {weekStats?.days?.length ? (
-            <Card>
+            <Card className="card-elevated border-border/80">
               <CardHeader>
                 <CardTitle>Entraînements sur 7 jours</CardTitle>
                 <CardDescription>Calories brûlées et durée (min)</CardDescription>
@@ -339,7 +354,7 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="card-elevated border-border/80">
           <CardHeader>
             <CardTitle>Repas du jour</CardTitle>
             <CardDescription>{mealsData?.meals.length || 0} repas</CardDescription>
@@ -393,7 +408,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-elevated border-border/80">
           <CardHeader>
             <CardTitle>Entraînements du jour</CardTitle>
             <CardDescription>
@@ -426,6 +441,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+      </main>
     </div>
   );
 }

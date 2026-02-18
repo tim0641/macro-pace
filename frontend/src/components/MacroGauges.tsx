@@ -60,7 +60,7 @@ interface MacroGaugesProps {
 export function MacroGauges({ stats, isLoading }: MacroGaugesProps) {
   if (isLoading) {
     return (
-      <Card>
+      <Card className="card-elevated border-border/80">
         <CardHeader>
           <CardTitle>Objectifs du jour</CardTitle>
           <CardDescription>Chargement...</CardDescription>
@@ -86,7 +86,7 @@ export function MacroGauges({ stats, isLoading }: MacroGaugesProps) {
 
   if (!hasTargets) {
     return (
-      <Card>
+      <Card className="card-elevated border-border/80">
         <CardHeader>
           <CardTitle>Objectifs du jour</CardTitle>
           <CardDescription>
@@ -103,7 +103,7 @@ export function MacroGauges({ stats, isLoading }: MacroGaugesProps) {
   }
 
   return (
-    <Card>
+    <Card className="card-elevated border-border/80">
       <CardHeader>
         <CardTitle>Objectifs du jour</CardTitle>
         <CardDescription>Progression de vos macros et nutriments</CardDescription>

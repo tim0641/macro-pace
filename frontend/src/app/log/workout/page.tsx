@@ -51,15 +51,26 @@ export default function LogWorkoutPage() {
   });
 
   return (
-    <div className="container mx-auto p-6 space-y-6 max-w-2xl">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Ajouter un entraînement</h1>
-        <Link href="/dashboard">
-          <Button variant="outline">Retour</Button>
-        </Link>
-      </div>
+    <div className="min-h-screen">
+      <header className="nav-bar sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <h1 className="text-xl font-semibold tracking-tight">Macro Pace</h1>
+          <nav className="flex items-center gap-2">
+            <Link href="/dashboard"><Button variant="ghost" size="sm">Tableau de bord</Button></Link>
+            <Link href="/profile"><Button variant="outline" size="sm">Profil</Button></Link>
+            <Link href="/foods"><Button variant="outline" size="sm">Aliments</Button></Link>
+            <Link href="/log/meal"><Button variant="outline" size="sm">+ Repas</Button></Link>
+            <Link href="/log/workout"><Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">+ Entraînement</Button></Link>
+          </nav>
+        </div>
+      </header>
+      <main className="container mx-auto px-4 py-6 space-y-6 max-w-2xl">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Ajouter un entraînement</h2>
+          <p className="text-sm text-muted-foreground">Course ou musculation</p>
+        </div>
 
-      <Card>
+      <Card className="card-elevated border-border/80">
         <CardHeader>
           <CardTitle>Nouvel entraînement</CardTitle>
         </CardHeader>
@@ -148,12 +159,13 @@ export default function LogWorkoutPage() {
           <Button
             onClick={() => createMutation.mutate()}
             disabled={!durationMin || createMutation.isPending}
-            className="w-full"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             {createMutation.isPending ? 'Création...' : 'Créer l\'entraînement'}
           </Button>
         </CardContent>
       </Card>
+      </main>
     </div>
   );
 }

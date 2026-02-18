@@ -81,15 +81,26 @@ export default function LogMealPage() {
   });
 
   return (
-    <div className="container mx-auto p-6 space-y-6 max-w-2xl">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Ajouter un repas</h1>
-        <Link href="/dashboard">
-          <Button variant="outline">Retour</Button>
-        </Link>
-      </div>
+    <div className="min-h-screen">
+      <header className="nav-bar sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <h1 className="text-xl font-semibold tracking-tight">Macro Pace</h1>
+          <nav className="flex items-center gap-2">
+            <Link href="/dashboard"><Button variant="ghost" size="sm">Tableau de bord</Button></Link>
+            <Link href="/profile"><Button variant="outline" size="sm">Profil</Button></Link>
+            <Link href="/foods"><Button variant="outline" size="sm">Aliments</Button></Link>
+            <Link href="/log/meal"><Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">+ Repas</Button></Link>
+            <Link href="/log/workout"><Button variant="outline" size="sm">+ Entraînement</Button></Link>
+          </nav>
+        </div>
+      </header>
+      <main className="container mx-auto px-4 py-6 space-y-6 max-w-2xl">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Ajouter un repas</h2>
+          <p className="text-sm text-muted-foreground">Créez un repas et ajoutez des aliments</p>
+        </div>
 
-      <Card>
+      <Card className="card-elevated border-border/80">
         <CardHeader>
           <CardTitle>Nouveau repas</CardTitle>
         </CardHeader>
@@ -131,6 +142,7 @@ export default function LogMealPage() {
             <Button
               onClick={() => createMealMutation.mutate()}
               disabled={createMealMutation.isPending}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {createMealMutation.isPending ? 'Création...' : 'Créer le repas'}
             </Button>
@@ -176,6 +188,7 @@ export default function LogMealPage() {
               <Button
                 onClick={() => addItemMutation.mutate()}
                 disabled={!selectedExternalFoodId || !grams || addItemMutation.isPending}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {addItemMutation.isPending ? 'Ajout...' : 'Ajouter'}
               </Button>
@@ -188,6 +201,7 @@ export default function LogMealPage() {
           )}
         </CardContent>
       </Card>
+      </main>
     </div>
   );
 }

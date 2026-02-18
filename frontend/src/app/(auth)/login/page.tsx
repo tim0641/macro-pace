@@ -28,45 +28,52 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Connexion</CardTitle>
-          <CardDescription>Connectez-vous à votre compte</CardDescription>
+    <div className="min-h-screen flex items-center justify-center bg-auth p-4">
+      <Card className="w-full max-w-md card-elevated border-border/80 shadow-xl shadow-black/5">
+        <CardHeader className="space-y-1 text-center pb-2">
+          <CardTitle className="text-2xl font-semibold tracking-tight">Connexion</CardTitle>
+          <CardDescription>Connectez-vous à votre compte Macro Pace</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-foreground/90">Email</Label>
               <Input
                 id="email"
                 type="email"
+                placeholder="vous@exemple.fr"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="h-11 border-border/80 focus-visible:ring-primary/30"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
+              <Label htmlFor="password" className="text-foreground/90">Mot de passe</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="h-11 border-border/80 focus-visible:ring-primary/30"
                 required
               />
             </div>
             {loginMutation.isError && (
-              <p className="text-sm text-destructive">
+              <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">
                 {(loginMutation.error as Error).message}
               </p>
             )}
-            <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+            <Button
+              type="submit"
+              className="w-full h-11 font-medium bg-primary hover:bg-primary/90 text-primary-foreground"
+              disabled={loginMutation.isPending}
+            >
               {loginMutation.isPending ? 'Connexion...' : 'Se connecter'}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
+            <p className="text-sm text-center text-muted-foreground pt-1">
               Pas de compte ?{' '}
-              <Link href="/register" className="text-primary hover:underline">
+              <Link href="/register" className="text-primary font-medium hover:underline underline-offset-2">
                 Créer un compte
               </Link>
             </p>

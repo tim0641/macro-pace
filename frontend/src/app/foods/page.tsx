@@ -68,38 +68,45 @@ export default function FoodsPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Aliments</h1>
-        <div className="space-x-2">
-          <Link href="/dashboard">
-            <Button variant="outline">Retour</Button>
-          </Link>
+    <div className="min-h-screen">
+      <header className="nav-bar sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <h1 className="text-xl font-semibold tracking-tight">Macro Pace</h1>
+          <nav className="flex items-center gap-2">
+            <Link href="/dashboard"><Button variant="ghost" size="sm">Tableau de bord</Button></Link>
+            <Link href="/profile"><Button variant="outline" size="sm">Profil</Button></Link>
+            <Link href="/foods"><Button variant="outline" size="sm" className="border-primary/50 bg-primary/5">Aliments</Button></Link>
+            <Link href="/log/meal"><Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">+ Repas</Button></Link>
+            <Link href="/log/workout"><Button variant="outline" size="sm">+ Entraînement</Button></Link>
+          </nav>
         </div>
-      </div>
+      </header>
+      <main className="container mx-auto px-4 py-6 space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Aliments</h2>
+          <p className="text-sm text-muted-foreground">Recherchez et ajoutez des aliments Ciqual</p>
+        </div>
 
       <div className="space-y-4">
         <Input
           placeholder="Rechercher un aliment..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          className="max-w-md border-border/80 focus-visible:ring-primary/30 h-11"
         />
-        <p className="text-sm text-muted-foreground">
-          Résultats fournis à la demande via une API externe (ex: USDA FoodData Central).
-        </p>
       </div>
 
       {quickAddError && (
-        <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm">
+        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm border border-destructive/20">
           {quickAddError}
         </div>
       )}
       {isLoading ? (
-        <p>Chargement...</p>
+        <div className="flex items-center gap-2 text-muted-foreground"><span className="animate-pulse">Chargement...</span></div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {foods?.map((food) => (
-            <Card key={food.externalId} className="relative">
+            <Card key={food.externalId} className="relative card-elevated border-border/80 hover:border-primary/30 transition-colors">
               <Button
                 variant="ghost"
                 size="icon"
@@ -129,6 +136,7 @@ export default function FoodsPage() {
           ))}
         </div>
       )}
+      </main>
     </div>
   );
 }

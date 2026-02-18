@@ -16,8 +16,8 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p className="text-muted-foreground">Chargement...</p>
+    <div className="min-h-screen flex items-center justify-center bg-app">
+      <p className="text-muted-foreground animate-pulse">Chargement...</p>
     </div>
   );
 }
