@@ -34,35 +34,30 @@ export class MealsService {
       throw new ForbiddenException('Vous n\'avez pas accès à ce repas');
     }
 
-    // Récupérer l'aliment
-    const food = await this.prisma.food.findUnique({
-      where: { id: addItemDto.foodId },
-    });
-
-    if (!food) {
-      throw new NotFoundException('Aliment non trouvé');
-    }
-
     // Calculer les macros pour la quantité donnée
     const ratio = addItemDto.grams / 100;
-    const kcal = Number(food.kcal100g) * ratio;
-    const protein = Number(food.protein100g) * ratio;
-    const carbs = Number(food.carbs100g) * ratio;
-    const fat = Number(food.fat100g) * ratio;
+    const kcal = Number(addItemDto.kcal100g) * ratio;
+    const protein = Number(addItemDto.protein100g) * ratio;
+    const carbs = Number(addItemDto.carbs100g) * ratio;
+    const fat = Number(addItemDto.fat100g) * ratio;
 
     // Créer l'item avec snapshot des macros
     const mealItem = await this.prisma.mealItem.create({
       data: {
         mealId,
-        foodId: addItemDto.foodId,
+        foodSource: addItemDto.foodSource,
+        externalFoodId: addItemDto.externalFoodId,
+        foodName: addItemDto.foodName,
+        foodBrand: addItemDto.foodBrand,
+        kcal100g: addItemDto.kcal100g,
+        protein100g: addItemDto.protein100g,
+        carbs100g: addItemDto.carbs100g,
+        fat100g: addItemDto.fat100g,
         grams: addItemDto.grams,
         kcal,
         protein,
         carbs,
         fat,
-      },
-      include: {
-        food: true,
       },
     });
 
@@ -84,11 +79,7 @@ export class MealsService {
         },
       },
       include: {
-        items: {
-          include: {
-            food: true,
-          },
-        },
+        items: true,
       },
       orderBy: {
         eatenAt: 'asc',

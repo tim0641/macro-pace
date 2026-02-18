@@ -10,6 +10,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum FoodSource {
+  usda
+  custom
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -36,24 +41,6 @@ model Profile {
   @@map("profiles")
 }
 
-model Food {
-  id          String   @id @default(uuid())
-  name        String
-  brand       String?
-  kcal100g    Float
-  protein100g Float
-  carbs100g   Float
-  fat100g     Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  mealItems MealItem[]
-
-  @@index([name])
-  @@index([brand])
-  @@map("foods")
-}
-
 model Meal {
   id        String   @id @default(uuid())
   userId    String
@@ -73,7 +60,19 @@ model Meal {
 model MealItem {
   id        String   @id @default(uuid())
   mealId    String
-  foodId    String
+
+  /// Référence externe (optionnelle) + infos snapshotées
+  foodSource     FoodSource
+  externalFoodId String?
+  foodName       String
+  foodBrand      String?
+
+  /// Macros de référence (souvent pour 100g) snapshotées au moment de l'ajout
+  kcal100g    Float
+  protein100g Float
+  carbs100g   Float
+  fat100g     Float
+
   grams     Float
   // Snapshot des macros calculés au moment de l'ajout
   kcal      Float
@@ -83,8 +82,8 @@ model MealItem {
   createdAt DateTime @default(now())
 
   meal Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
-  food Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
 
+  @@index([externalFoodId])
   @@map("meal_items")
 }
 
