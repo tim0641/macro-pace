@@ -25,6 +25,7 @@ import {
   Bar,
   ComposedChart,
 } from 'recharts';
+import { MacroGauges } from '@/components/MacroGauges';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -185,6 +186,9 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Jauges de progression macros */}
+          <MacroGauges stats={stats} isLoading={isLoading} />
 
           {/* Macros du jour (camembert en kcal) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

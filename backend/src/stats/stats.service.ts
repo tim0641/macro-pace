@@ -37,10 +37,12 @@ export class StatsService {
           acc.protein += Number(item.protein);
           acc.carbs += Number(item.carbs);
           acc.fat += Number(item.fat);
+          acc.sugar += Number(item.sugar ?? 0);
+          acc.fiber += Number(item.fiber ?? 0);
         });
         return acc;
       },
-      { kcal: 0, protein: 0, carbs: 0, fat: 0 },
+      { kcal: 0, protein: 0, carbs: 0, fat: 0, sugar: 0, fiber: 0 },
     );
 
     // Récupérer les entraînements
@@ -96,6 +98,8 @@ export class StatsService {
             proteinG: targets.proteinG,
             carbsG: targets.carbsG,
             fatG: targets.fatG,
+            sugarTargetG: targets.sugarTargetG,
+            fiberTargetG: targets.fiberTargetG,
           }
         : null,
     };

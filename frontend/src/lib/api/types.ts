@@ -33,6 +33,8 @@ export interface Targets {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  sugarTargetG: number;
+  fiberTargetG: number;
 }
 
 export interface AuthResponse {
@@ -49,6 +51,8 @@ export interface FoodSearchResult {
   protein100g: number;
   carbs100g: number;
   fat100g: number;
+  sugar100g?: number;
+  fiber100g?: number;
 }
 
 export interface MealItem {
@@ -62,11 +66,15 @@ export interface MealItem {
   protein100g: number;
   carbs100g: number;
   fat100g: number;
+  sugar100g?: number | null;
+  fiber100g?: number | null;
   grams: number;
   kcal: number;
   protein: number;
   carbs: number;
   fat: number;
+  sugar: number;
+  fiber: number;
 }
 
 export interface Meal {
@@ -103,6 +111,8 @@ export interface DayStats {
     protein: number;
     carbs: number;
     fat: number;
+    sugar: number;
+    fiber: number;
   };
   workouts: {
     count: number;
@@ -115,6 +125,8 @@ export interface DayStats {
     proteinG: number;
     carbsG: number;
     fatG: number;
+    sugarTargetG: number;
+    fiberTargetG: number;
   } | null;
 }
 

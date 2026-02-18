@@ -14,13 +14,19 @@ export type CiqualFood = {
   protein100g: number;
   carbs100g: number;
   fat100g: number;
+  sugar100g?: number;
+  fiber100g?: number;
 };
 
 let CIQUAL_FOODS_CACHE: CiqualFood[] | null = null;
 
 function parseCiqualValue(value: string | number | null | undefined): number {
   if (value === null || value === undefined || value === '') return 0;
-  const num = typeof value === 'string' ? parseFloat(value.replace(',', '.')) : value;
+  // Nettoyer la chaîne : remplacer virgule par point, supprimer espaces
+  const cleaned = typeof value === 'string' 
+    ? value.toString().trim().replace(',', '.').replace(/\s/g, '')
+    : String(value);
+  const num = parseFloat(cleaned);
   return isNaN(num) ? 0 : num;
 }
 
@@ -39,6 +45,14 @@ function loadCiqualFromJson(filePath: string): CiqualFood[] {
         protein100g: parseCiqualValue(item.protein100g || item['Protéines (g/100g)'] || item.proteines_100g),
         carbs100g: parseCiqualValue(item.carbs100g || item['Glucides (g/100g)'] || item.glucides_100g),
         fat100g: parseCiqualValue(item.fat100g || item['Lipides (g/100g)'] || item.lipides_100g),
+        sugar100g: parseCiqualValue(item.sugar100g || item['Sucres (g/100g)'] || item.sucres_100g || item['Sucres, totaux (g/100g)']),
+        fiber100g: parseCiqualValue(
+          item.fiber100g || 
+          item['Fibres alimentaires (g/100g)'] || 
+          item['Fibre alimentaire (g/100g)'] ||
+          item['Fibres (g/100g)'] || 
+          item.fibres_100g
+        ),
       })).filter((f: CiqualFood) => f.code && f.name);
     }
     
@@ -72,11 +86,21 @@ function loadCiqualFromCsv(filePath: string): CiqualFood[] {
     const proteinIdx = header.findIndex((h) => h.includes('proteine') || h.includes('protein'));
     const carbsIdx = header.findIndex((h) => h.includes('glucide') || h.includes('carb'));
     const fatIdx = header.findIndex((h) => h.includes('lipide') || h.includes('fat'));
+    const sugarIdx = header.findIndex((h) => h.includes('sucres') || h.includes('sugar') || h.includes('sucres, totaux'));
+    // Recherche de la colonne fibres en excluant les colonnes d'énergie
+    const fiberIdx = header.findIndex((h) => {
+      const hasFibres = h.includes('fibres') || h.includes('fiber');
+      const isNotEnergy = !h.includes('energie') && !h.includes('kj') && !h.includes('jones') && !h.includes('facteur');
+      // Priorité aux colonnes avec "fibres alimentaires" ou "fibre alimentaire"
+      const hasAlimentaires = h.includes('fibres alimentaires') || h.includes('fibre alimentaire');
+      return hasFibres && isNotEnergy && (hasAlimentaires || !h.includes('energie'));
+    });
     
     const foods: CiqualFood[] = [];
     for (let i = 1; i < lines.length; i++) {
       const cols = lines[i].split(';').map((c) => c.trim());
-      if (cols.length < Math.max(codeIdx, nameIdx, kcalIdx, proteinIdx, carbsIdx, fatIdx) + 1) continue;
+      const maxIdx = Math.max(codeIdx, nameIdx, kcalIdx, proteinIdx, carbsIdx, fatIdx, sugarIdx, fiberIdx);
+      if (cols.length < maxIdx + 1) continue;
       
       const code = codeIdx >= 0 ? cols[codeIdx] : '';
       const name = nameIdx >= 0 ? cols[nameIdx] : '';
@@ -90,6 +114,8 @@ function loadCiqualFromCsv(filePath: string): CiqualFood[] {
         protein100g: parseCiqualValue(proteinIdx >= 0 ? cols[proteinIdx] : 0),
         carbs100g: parseCiqualValue(carbsIdx >= 0 ? cols[carbsIdx] : 0),
         fat100g: parseCiqualValue(fatIdx >= 0 ? cols[fatIdx] : 0),
+        sugar100g: sugarIdx >= 0 ? parseCiqualValue(cols[sugarIdx]) : undefined,
+        fiber100g: fiberIdx >= 0 ? parseCiqualValue(cols[fiberIdx]) : undefined,
       });
     }
     
@@ -185,6 +211,45 @@ function loadCiqualFromExcel(filePath: string): CiqualFood[] {
     const proteinKey = findKey(['protéines', 'proteines', 'protein', 'protéines (g/100g)']);
     const carbsKey = findKey(['glucides', 'glucide', 'carb', 'glucides (g/100g)']);
     const fatKey = findKey(['lipides', 'lipide', 'fat', 'lipides (g/100g)']);
+    const sugarKey = findKey(['sucres', 'sugar', 'sucres (g/100g)', 'sucres, totaux (g/100g)']);
+    // Fonction spéciale pour trouver la colonne fibres en excluant les colonnes d'énergie
+    const findFiberKey = (): string | null => {
+      // Priorité 1: colonnes contenant explicitement "fibres alimentaires" ou "fibre alimentaire" (g/100g)
+      const fiberPatterns = [
+        'fibres alimentaires (g/100g)',
+        'fibre alimentaire (g/100g)',
+        'fibres alimentaires',
+        'fibre alimentaire',
+        'fibres (g/100g)',
+      ];
+      
+      for (const pattern of fiberPatterns) {
+        const found = keys.find((k) => {
+          const kNorm = String(k).trim().toLowerCase();
+          const pNorm = pattern.toLowerCase();
+          // Doit contenir le pattern ET ne pas contenir "energie", "kj", "jones", "facteur"
+          const matches = kNorm.includes(pNorm) || kNorm.replace(/\s/g, '').includes(pNorm.replace(/\s/g, ''));
+          const isNotEnergy = !kNorm.includes('energie') && !kNorm.includes('kj') && !kNorm.includes('jones') && !kNorm.includes('facteur');
+          return matches && isNotEnergy;
+        });
+        if (found) return found;
+      }
+      
+      // Priorité 2: colonnes "fibres" mais seulement si elles ne contiennent pas "energie", "kj", etc.
+      const fibresFound = keys.find((k) => {
+        const kNorm = String(k).trim().toLowerCase();
+        return (kNorm.includes('fibres') || kNorm.includes('fiber')) 
+          && !kNorm.includes('energie') 
+          && !kNorm.includes('kj') 
+          && !kNorm.includes('jones')
+          && !kNorm.includes('facteur');
+      });
+      if (fibresFound) return fibresFound;
+      
+      return null;
+    };
+    
+    const fiberKey = findFiberKey();
     
     if (!nameKey || !codeKey) {
       console.error(`[Ciqual] Colonnes code/nom non trouvées. Clés: ${keys.join(', ')}`);
@@ -207,6 +272,8 @@ function loadCiqualFromExcel(filePath: string): CiqualFood[] {
         protein100g: parseCiqualValue(proteinKey ? row[proteinKey] : 0),
         carbs100g: parseCiqualValue(carbsKey ? row[carbsKey] : 0),
         fat100g: parseCiqualValue(fatKey ? row[fatKey] : 0),
+        sugar100g: sugarKey ? parseCiqualValue(row[sugarKey]) : undefined,
+        fiber100g: fiberKey ? parseCiqualValue(row[fiberKey]) : undefined,
       });
     }
     
@@ -221,7 +288,35 @@ function loadCiqualFromExcel(filePath: string): CiqualFood[] {
       console.warn(`[Ciqual] ⚠️ Aucune colonne kcal trouvée. Colonnes disponibles: ${keys.join(', ')}`);
     }
     
-    console.log(`[Ciqual] ${foods.length} aliments parsés depuis Excel (code: ${codeKey}, nom: ${nameKey}, kcal: ${kcalKey || 'n/a'})`);
+    // Log pour debug des colonnes sugar/fiber
+    if (sugarKey) {
+      console.log(`[Ciqual] ✅ Colonne sucres détectée: "${sugarKey}"`);
+    } else {
+      console.warn(`[Ciqual] ⚠️ Aucune colonne sucres trouvée`);
+    }
+    
+    if (fiberKey) {
+      console.log(`[Ciqual] ✅ Colonne fibres détectée: "${fiberKey}"`);
+      // Afficher quelques exemples de valeurs pour debug
+      const sampleRows = data.slice(0, 3).filter((r: any) => {
+        const code = String(r[codeKey] ?? '').trim();
+        const name = String(r[nameKey] ?? '').trim();
+        return code && name && name.toLowerCase() !== 'alim_nom_fr';
+      });
+      if (sampleRows.length > 0) {
+        console.log(`[Ciqual] Exemples de valeurs fibres (3 premiers aliments):`, 
+          sampleRows.map((r: any) => ({ 
+            name: String(r[nameKey]).substring(0, 30), 
+            raw: r[fiberKey], 
+            parsed: parseCiqualValue(r[fiberKey])
+          }))
+        );
+      }
+    } else {
+      console.warn(`[Ciqual] ⚠️ Aucune colonne fibres trouvée. Colonnes disponibles: ${keys.filter(k => String(k).toLowerCase().includes('fibr')).join(', ') || 'aucune'}`);
+    }
+    
+    console.log(`[Ciqual] ${foods.length} aliments parsés depuis Excel (code: ${codeKey}, nom: ${nameKey}, kcal: ${kcalKey || 'n/a'}, fiber: ${fiberKey || 'n/a'})`);
     return foods;
   } catch (error) {
     console.error(`Erreur lors du chargement Excel de ${filePath}:`, error);

@@ -40,6 +40,8 @@ export interface TargetsResult {
   proteinG: number;
   carbsG: number;
   fatG: number;
+  sugarTargetG: number;
+  fiberTargetG: number;
 }
 
 function getAge(birthdate: Date): number {
@@ -116,6 +118,12 @@ export function computeTargets(profile: ProfileForTargets): TargetsResult | null
 
   const { proteinG, fatG, carbsG } = calcMacros(profile.weightKg, targetCalories, profile.goal as Goal);
 
+  // Cibles par défaut pour sucres et fibres
+  // Sucres: recommandation OMS < 50g/jour (idéalement < 25g), on utilise 50g comme cible max
+  // Fibres: recommandation ANSES 25-30g/jour selon l'âge/sexe, on utilise 30g comme cible
+  const sugarTargetG = 50;
+  const fiberTargetG = 30;
+
   return {
     bmr: Math.round(bmr),
     tdee: Math.round(tdee),
@@ -123,5 +131,7 @@ export function computeTargets(profile: ProfileForTargets): TargetsResult | null
     proteinG,
     fatG,
     carbsG,
+    sugarTargetG,
+    fiberTargetG,
   };
 }

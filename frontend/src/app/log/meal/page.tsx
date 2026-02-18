@@ -65,6 +65,8 @@ export default function LogMealPage() {
           protein100g: selected.protein100g,
           carbs100g: selected.carbs100g,
           fat100g: selected.fat100g,
+          sugar100g: selected.sugar100g,
+          fiber100g: selected.fiber100g,
           grams: parseFloat(grams),
         };
       })()),

@@ -171,6 +171,8 @@ class ApiClient {
       protein100g: number;
       carbs100g: number;
       fat100g: number;
+      sugar100g?: number;
+      fiber100g?: number;
       grams: number;
     }
   ): Promise<any> {
@@ -198,6 +200,8 @@ class ApiClient {
     protein100g: number;
     carbs100g: number;
     fat100g: number;
+    sugar100g?: number;
+    fiber100g?: number;
     grams: number;
     mealType?: string;
     eatenAt?: string;

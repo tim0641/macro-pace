@@ -40,6 +40,8 @@ export class MealsService {
     const protein = Number(addItemDto.protein100g) * ratio;
     const carbs = Number(addItemDto.carbs100g) * ratio;
     const fat = Number(addItemDto.fat100g) * ratio;
+    const sugar = (addItemDto.sugar100g ?? 0) * ratio;
+    const fiber = (addItemDto.fiber100g ?? 0) * ratio;
 
     // Créer l'item avec snapshot des macros
     const mealItem = await this.prisma.mealItem.create({
@@ -53,11 +55,15 @@ export class MealsService {
         protein100g: addItemDto.protein100g,
         carbs100g: addItemDto.carbs100g,
         fat100g: addItemDto.fat100g,
+        sugar100g: addItemDto.sugar100g ?? null,
+        fiber100g: addItemDto.fiber100g ?? null,
         grams: addItemDto.grams,
         kcal,
         protein,
         carbs,
         fat,
+        sugar,
+        fiber,
       },
     });
 
@@ -146,6 +152,8 @@ export class MealsService {
     const protein = Number(dto.protein100g) * ratio;
     const carbs = Number(dto.carbs100g) * ratio;
     const fat = Number(dto.fat100g) * ratio;
+    const sugar = (dto.sugar100g ?? 0) * ratio;
+    const fiber = (dto.fiber100g ?? 0) * ratio;
 
     await this.prisma.mealItem.create({
       data: {
@@ -158,11 +166,15 @@ export class MealsService {
         protein100g: dto.protein100g,
         carbs100g: dto.carbs100g,
         fat100g: dto.fat100g,
+        sugar100g: dto.sugar100g ?? null,
+        fiber100g: dto.fiber100g ?? null,
         grams: dto.grams,
         kcal,
         protein,
         carbs,
         fat,
+        sugar,
+        fiber,
       },
     });
 

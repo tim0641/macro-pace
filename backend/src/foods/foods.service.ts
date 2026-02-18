@@ -11,6 +11,8 @@ export type ExternalFood = {
   protein100g: number;
   carbs100g: number;
   fat100g: number;
+  sugar100g?: number;
+  fiber100g?: number;
   score?: number;
   dataType?: string;
 };
@@ -58,6 +60,8 @@ export class FoodsService implements OnModuleInit {
         protein100g: food.protein100g,
         carbs100g: food.carbs100g,
         fat100g: food.fat100g,
+        sugar100g: food.sugar100g,
+        fiber100g: food.fiber100g,
         score,
         dataType: 'ciqual',
       }));

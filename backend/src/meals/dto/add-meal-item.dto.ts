@@ -45,6 +45,18 @@ export class AddMealItemDto {
   @Min(0)
   fat100g: number;
 
+  @ApiProperty({ example: 0, description: 'Sucres (g) pour 100g', required: false })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  sugar100g?: number;
+
+  @ApiProperty({ example: 0, description: 'Fibres (g) pour 100g', required: false })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  fiber100g?: number;
+
   @ApiProperty({ example: 150 })
   @IsNumber()
   @Min(0.01)

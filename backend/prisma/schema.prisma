@@ -103,6 +103,8 @@ model MealItem {
   protein100g Float
   carbs100g   Float
   fat100g     Float
+  sugar100g   Float?
+  fiber100g   Float?
 
   grams     Float
   // Snapshot des macros calculés au moment de l'ajout
@@ -110,6 +112,8 @@ model MealItem {
   protein   Float
   carbs     Float
   fat       Float
+  sugar     Float @default(0)
+  fiber     Float @default(0)
   createdAt DateTime @default(now())
 
   meal Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)

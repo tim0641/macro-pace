@@ -40,6 +40,8 @@ export default function FoodsPage() {
         protein100g: payload.food.protein100g,
         carbs100g: payload.food.carbs100g,
         fat100g: payload.food.fat100g,
+        sugar100g: payload.food.sugar100g,
+        fiber100g: payload.food.fiber100g,
         grams: payload.grams,
       }),
     onSuccess: () => {
